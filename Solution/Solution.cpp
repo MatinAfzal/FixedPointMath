@@ -1,66 +1,40 @@
-// Floating point calculations without FPU.
 #include <iostream>
 
-typedef long Fixed32; // 16.16 Fixed Point 
-Fixed32 FixedMul(Fixed32 x, Fixed32 y);
-Fixed32 FixedDiv(Fixed32 x, Fixed32 divisor);
-
-#pragma aux FixedMul =          \
-    "imul edx"                  \
-    "add eax, 8000h"            \
-    "adc edx, 0"                \
-    "shrd eax, edx, 16"         \
-    parm caller [eax] [edx      \
-    value [eax]                 \
-    modify [eax edx];
-
-#pragma aux FixedDiv =          \
-    "xor eax, eax"              \
-    "shrd eax, edx, 16"         \
-    "sar edx, 16"               \
-    "idiv ebx"                  \
-    parm caller [edx] [ebx]     \
-    value [eax]                 \
-    modify [eax ebx edx];
-
-//*********************************************************
-#define INT_TO_FIXED(x)     ((x) << 16)
-#define FIXED_TO_INT(x)     ((x) >> 16)
-#define DOUBLE_TO_FIXED(x)  ((Fixed32)(x * 65536.0 + 0.5))
-#define FIXED_TO_DOUBLE(x)  (((double)x) / 65536.0)
-#define ROUND_FIXED_TO_INT(x) (((x) + 0x8000) >> 16)
-//*********************************************************
-#define FixedAdd(x, y)  (x + y)
-#define FixedSub(x, y)  (x - y)
-//*********************************************************
-#define PRINT_INFO(info)    std::cout<<"\n"<<info<<std::endl;
-//*********************************************************
-#define ONE INT_TO_FIXED(1);
-#define FIXED_PI        205887L
-#define FIXED_2PI       411775L
-#define FIXED_E         178144L
-#define FIXED_ROOT2      74804L
-#define FIXED_ROOT3     113512L
-#define FIXED_GOLDEN    106039L
-//*********************************************************
-
-void testAdd();
-
-int main()
+template<typename size, typename dszie, size_t pb> // size, double size, precision bits.
+class FixedPoint 
 {
-    std::cout << "Fixed32 (long) is " << sizeof(Fixed32) << " bytes." << std::endl;
-    testAdd();
+public:
+	constexpr FixedPoint() = default;
+	constexpr FixedPoint(const double num) { fixed = num * (1 << pb) + (num >= 0 ? 0.5 : -0.5); }
+	constexpr size getDouble() { return fixed / (1 << pb); }
+	constexpr void setFixed(const size num) { fixed = num; }
+	constexpr size getFixed() { return this->fixed; }
+	constexpr void add(const FixedPoint num) { fixed += num.fixed; }
+	constexpr void sub(const FixedPoint num) { fixed -= num.fixed; }
+	constexpr void mul(const FixedPoint num) { fixed = dsize(fixed) * dszie(num.fixed) >> pb; }
+	constexpr void div(const FixedPoint num) { fixed = dsize(fixed) / dszie(num.fixed) >> pb; }
+private:
+	size fixed = size(0);
+};
 
-    PRINT_INFO("Enter any keys to exit.");
-    std::cin.get();
-    return EXIT_SUCCESS;
-}
-//---------------------------------------------------------
-void testAdd()
+int main() 
 {
-    PRINT_INFO("*********Starting testAdd!*********");
-    Fixed32 x = 8000.8045;
-    Fixed32 y = 0999.0954;
-    Fixed32 res = FixedAdd(x, y);
-    std::cout << "Fixed32 x + y = " << res << " eq=al to double " << FIXED_TO_DOUBLE(res) << std::endl;
+	using FP16_16 = FixedPoint<int32_t, int64_t, 16>;
+	double da = 5.5;
+	double db = 7.2;
+
+	FP16_16 fa(da);
+	FP16_16 fb(db);
+
+	std::cout << "DOUBLE A: " << da << std::endl;
+	std::cout << "DOUBLE B: " << db << std::endl;
+	std::cout << "FIXED A: " << fa.getFixed() << std::endl;
+	std::cout << "FIXED B: " << fb.getFixed() << std::endl;
+
+	fa.add(fb);
+	std::cout << "FIXED A + B = " << fa.getFixed() << std::endl;
+	std::cout << "DOUBLE A + B = " << fa.getDouble() << std::endl;
+
+	std::cin.get();
+	return EXIT_SUCCESS;
 }
