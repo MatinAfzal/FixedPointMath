@@ -129,6 +129,9 @@
   <ItemGroup>
     <ClCompile Include="Solution.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="fpm.hpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
