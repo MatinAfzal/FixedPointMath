@@ -1,4 +1,4 @@
-# fpm.hpp (Simple Fixed Point Math Header Only Library)
+# fpm.hpp (Simple Fixed Point Math C++ Header Only Library)
 Smart Calculation Technique That Saved the Good Old Games Industry (Fixed-Point Math)
 
 **fpm.hpp** is a fixed point math header only library for C++ that you can download from here:  
